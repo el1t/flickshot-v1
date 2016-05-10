@@ -4,8 +4,6 @@ getRandomInt = (min, max) ->
 
 class Game
 	constructor: (@canvas, @ctx, @dimens) ->
-		@MIN_RADIUS = 100
-		@MAX_RADIUS = 200
 		@delay = undefined
 		Target.image = new Image()
 		Target.image.onload = =>
@@ -24,6 +22,7 @@ class Game
 		for target in @targets by -1
 			if not target.destroyed and target.clickWithin x, y
 				@score++
+				@shrinkRadii() if @score <= 100 and @score % 10 is 0
 				target.destroy() # Signal clicked
 				@generateTarget()
 				return
@@ -32,6 +31,9 @@ class Game
 		return
 
 	startGame: ->
+		scalar = Math.min @dimens.width, @dimens.height
+		@MIN_RADIUS = 0.25 * scalar
+		@MAX_RADIUS = 0.3 * scalar
 		@delay = undefined
 		@initialize()
 		@generateTarget() for i in [1..3]
@@ -51,8 +53,15 @@ class Game
 		@render undefined
 
 	generateTarget: ->
-		target = new Target getRandomInt(0, @dimens.width - 2 * @MAX_RADIUS), getRandomInt(0, @dimens.height - 2 * @MAX_RADIUS), getRandomInt(@MIN_RADIUS, @MAX_RADIUS)
+		target = new Target getRandomInt(0, @dimens.width - 2 * @MAX_RADIUS),
+			getRandomInt(0, @dimens.height - 2 * @MAX_RADIUS),
+			getRandomInt(@MIN_RADIUS, @MAX_RADIUS),
+			@MIN_RADIUS * 0.7
 		@targets.push target
+
+	shrinkRadii: ->
+		@MIN_RADIUS *= .95
+		@MAX_RADIUS *= .95
 
 	render: ->
 		# Clear screen
@@ -71,7 +80,7 @@ class Game
 			return
 		newTargets = []
 		for target in @targets
-			if not target.destroyed or target.tick delta > 0
+			if target.tick delta
 				newTargets.push target
 		@targets = newTargets
 		newClicks = []
@@ -80,6 +89,7 @@ class Game
 				newClicks.push click
 		@clicks = newClicks
 		@render delta
+		@gameOver() if @targets.length is 0
 
 	tick: ->
 		requestAnimationFrame => @tick()
@@ -95,23 +105,30 @@ class Game
 
 class Target
 	@image = undefined
-	@timeout = 10
-	constructor: (@x, @y, @radius) ->
-		@ttl = Target.timeout
+	@animationLength = 10
+	@duration = 3000
+	constructor: (@x, @y, @radius, @minRadius) ->
+		@deltaRadius = @radius - @minRadius
+		@ttl = Target.duration
 		@destroyed = false
 
 	clickWithin: (x, y) ->
 		Math.sqrt(Math.pow(@x + @radius - x, 2) + Math.pow(@y + @radius - y, 2)) <= @radius
 
 	destroy: ->
+		@ttl = Target.animationLength
 		@destroyed = true
 
 	render: (ctx) ->
 		ctx.save()
 		# Draw svg
-		ctx.globalAlpha = @ttl / Target.timeout if @destroyed
+		ctx.globalAlpha = @ttl / Target.animationLength if @destroyed
 		ctx.drawImage Target.image, @x, @y, @radius * 2, @radius * 2
-		ctx.globalAlpha = 1
+		unless @destroyed
+			ctx.beginPath()
+			ctx.arc @x + @radius, @y + @radius, @radius, 0, 2 * Math.PI, false
+			ctx.fillStyle = 'rgba(255, 0, 0, ' + (1 - @ttl / Target.duration) + ')'
+			ctx.fill()
 		# Add outline
 		ctx.beginPath()
 		ctx.arc @x + @radius, @y + @radius, @radius + 0.5, 0, 2 * Math.PI, false
@@ -121,11 +138,19 @@ class Target
 		ctx.restore()
 
 	tick: (delta) ->
-		# Animate growth
-		@x -= delta / 2
-		@y -= delta / 2
-		@radius += delta
 		@ttl -= delta
+		if @destroyed
+			# Animate growth
+			@x -= delta / 2
+			@y -= delta / 2
+			@radius += delta
+		else
+			newRadius = @minRadius + @ttl / Target.duration * @deltaRadius
+			@x += (@radius - newRadius) / 2
+			@y += (@radius - newRadius) / 2
+			@radius = newRadius
+		return @ttl > 0
+
 
 class Click
 	@timeout = 20
