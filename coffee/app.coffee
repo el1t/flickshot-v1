@@ -2,17 +2,48 @@
 getRandomInt = (min, max) ->
 	Math.floor Math.random() * (max - min + 1) + min
 
+startGame = (game) ->
+	menu = document.getElementById 'menu'
+	start = document.getElementById 'start'
+	start.style.opacity = 0
+	menu.style.opacity = 0
+	setTimeout ->
+			start.style.visibility = 'hidden'
+		, 100
+	setTimeout ->
+			game.startGame()
+			menu.style.visibility = 'hidden'
+			menu.style.opacity = 1
+			start.style.opacity = 1
+		, 1000
+
+endGame = (game) ->
+	end = document.getElementById 'end'
+	end.style.visibility = 'visible'
+	end.style.opacity = 1
+	score = document.getElementById 'score'
+	score.innerHTML = "Your score: #{game.stats.targets + Math.round10 game.stats.bonus, -1}"
+	targets = document.getElementById 'targets'
+	targets.innerHTML = "Targets hit: #{game.stats.targets}"
+	if game.stats.targets
+		accuracy = document.getElementById 'accuracy'
+		accuracy.innerHTML = "Accuracy: #{Math.round10 game.stats.bonus / game.stats.targets * 100, -2}%"
+	time = document.getElementById 'time'
+	time.innerHTML = "Time elapsed: #{Math.round10 game.stats.time, -1} seconds"
+	speed = document.getElementById 'speed'
+	speed.innerHTML = "Targets per second: #{Math.round10 game.stats.targets / game.stats.time, -2}"
+
 class Game
 	constructor: (@canvas, @ctx, @dimens) ->
 		@delay = undefined
+		@paused = true
 		Target.image = new Image()
 		Target.image.onload = =>
-			@startGame()
-			requestAnimationFrame => @tick()
+			@initialize()
 			return
 		Target.image.src = 'target.svg'
 		canvas.addEventListener 'mousedown', (e) =>
-			@clickHandler e.pageX - e.target.offsetLeft, e.pageY - e.target.offsetTop
+			@clickHandler e.pageX - e.target.offsetLeft, e.pageY - e.target.offsetTop unless @paused
 		# For ticking:
 		@lastTime = @prevElapsed = @prevElapsed2 = 0
 
@@ -20,37 +51,44 @@ class Game
 		if @delay isnt undefined then return
 		@clicks.push new Click x, y
 		for target in @targets by -1
-			if not target.destroyed and target.clickWithin x, y
-				@score++
-				@shrinkRadii() if @score <= 100 and @score % 10 is 0
-				target.destroy() # Signal clicked
-				@generateTarget()
-				return
+			if not target.destroyed
+				distance = target.clickBonus x, y
+				if distance <= target.radius
+					@stats.targets++
+					@stats.bonus += 1 - distance / target.radius
+					@shrinkRadii() if @stats.targets <= 100 and @stats.targets % 10 is 0
+					target.destroy() # Signal clicked
+					@generateTarget()
+					return
 		# Didn't click a circle
 		@gameOver()
 		return
 
 	startGame: ->
+		@paused = false
+		@canvas.style.cursor = 'none'
+		requestAnimationFrame => @tick()
+
+	initialize: ->
 		scalar = Math.min @dimens.width, @dimens.height
 		@MIN_RADIUS = 0.25 * scalar
 		@MAX_RADIUS = 0.3 * scalar
 		@delay = undefined
-		@initialize()
-		@generateTarget() for i in [1..3]
-		@canvas.style.cursor = 'none'
-
-	initialize: ->
-		@score = 0
+		@stats =
+			targets: 0
+			bonus: 0
+			time: 0
 		@targets = []
 		@clicks = []
+		@generateTarget() for i in [1..3]
+		@paused = true
+		@render()
 
 	gameOver: ->
-		console.log @score
 		@canvas.style.cursor = 'auto'
-		@delay =
-			callback: @startGame
-			time: 750
-		@render undefined
+		endGame this
+		@paused = true
+		@render()
 
 	generateTarget: ->
 		target = new Target getRandomInt(0, @dimens.width - 2 * @MAX_RADIUS),
@@ -80,7 +118,7 @@ class Game
 			return
 		newTargets = []
 		for target in @targets
-			if target.tick delta
+			if not target.destroyed or target.tick delta > 0
 				newTargets.push target
 		@targets = newTargets
 		newClicks = []
@@ -88,11 +126,12 @@ class Game
 			if click.tick delta > 0
 				newClicks.push click
 		@clicks = newClicks
-		@render delta
+		@stats.time += delta / 1000
+		@render()
 		@gameOver() if @targets.length is 0
 
 	tick: ->
-		requestAnimationFrame => @tick()
+		requestAnimationFrame => @tick() unless @paused
 		currentTime = Date.now()
 		elapsed = currentTime - @lastTime
 		if elapsed > 0
@@ -106,14 +145,11 @@ class Game
 class Target
 	@image = undefined
 	@animationLength = 10
-	@duration = 3000
 	constructor: (@x, @y, @radius, @minRadius) ->
-		@deltaRadius = @radius - @minRadius
-		@ttl = Target.duration
 		@destroyed = false
 
-	clickWithin: (x, y) ->
-		Math.sqrt(Math.pow(@x + @radius - x, 2) + Math.pow(@y + @radius - y, 2)) <= @radius
+	clickBonus: (x, y) ->
+		Math.sqrt(Math.pow(@x + @radius - x, 2) + Math.pow(@y + @radius - y, 2))
 
 	destroy: ->
 		@ttl = Target.animationLength
@@ -124,11 +160,6 @@ class Target
 		# Draw svg
 		ctx.globalAlpha = @ttl / Target.animationLength if @destroyed
 		ctx.drawImage Target.image, @x, @y, @radius * 2, @radius * 2
-		unless @destroyed
-			ctx.beginPath()
-			ctx.arc @x + @radius, @y + @radius, @radius, 0, 2 * Math.PI, false
-			ctx.fillStyle = 'rgba(255, 0, 0, ' + (1 - @ttl / Target.duration) + ')'
-			ctx.fill()
 		# Add outline
 		ctx.beginPath()
 		ctx.arc @x + @radius, @y + @radius, @radius + 0.5, 0, 2 * Math.PI, false
@@ -138,18 +169,11 @@ class Target
 		ctx.restore()
 
 	tick: (delta) ->
+		# Animate growth
+		@x -= delta / 2
+		@y -= delta / 2
+		@radius += delta
 		@ttl -= delta
-		if @destroyed
-			# Animate growth
-			@x -= delta / 2
-			@y -= delta / 2
-			@radius += delta
-		else
-			newRadius = @minRadius + @ttl / Target.duration * @deltaRadius
-			@x += (@radius - newRadius) / 2
-			@y += (@radius - newRadius) / 2
-			@radius = newRadius
-		return @ttl > 0
 
 
 class Click
@@ -180,4 +204,11 @@ window.onload = ->
 	canvas.width = window.innerWidth * pixelRatio
 	canvas.height = window.innerHeight * pixelRatio
 	ctx.scale pixelRatio, pixelRatio
-	new Game canvas, ctx, {width: canvas.width / pixelRatio, height: canvas.height / pixelRatio, ratio: pixelRatio}
+	app = new Game canvas, ctx, {width: canvas.width / pixelRatio, height: canvas.height / pixelRatio, ratio: pixelRatio}
+	start = document.getElementById 'start'
+	start.onclick = ->
+#		if canvas.webkitRequestFullScreen?
+#			canvas.webkitRequestFullScreen()
+#		else
+#		canvas.mozRequestFullScreen()
+		startGame app

@@ -1,10 +1,95 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto);
+
 html, body {
 	background-color: black;
 	padding: 0;
 	margin: 0;
+	font-family: 'Roboto', sans-serif;
+}
+
+body {
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+}
+
+%fullscreen {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+}
+
+section {
+	@extend %fullscreen;
+	cursor: auto;
+	display: flex;
+	background-color: rgba(0, 0, 0, 0.5);
+	justify-content: center;
+	align-items: center;
+	z-index: 1;
+
+	.container {
+		width: 80%;
+		height: 80%;
+		padding: 2rem;
+		display: flex;
+		flex-flow: column wrap;
+		justify-content: center;
+		//align-items: center;
+		//background-color: white;
+		border-radius: 5rem;
+
+		p {
+			width: 100%;
+			font-size: 2rem;
+			text-align: center;
+			color: white;
+		}
+
+		h1, h2 {
+			align-self: center;
+			color: white;
+			margin: 0;
+		}
+	}
+}
+
+#menu {
+	transition: opacity 1s linear;
+}
+
+#end {
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 0.5s linear;
+}
+
+h1 {
+	font-size: 2rem;
+}
+
+#start {
+	align-self: center;
+}
+
+button {
+	cursor: pointer;
+	color: black;
+	background-color: white;
+	padding: 1rem 2rem;
+	font-size: 2rem;
+	border: none;
+	border-radius: 1rem;
+	user-select: none;
+	transition: opacity 0.1s linear;
+	&:active {
+		color: white;
+	}
 }
 
 #canvas {
-	width: 100%;
-	height: 100%;
+	@extend %fullscreen;
+	z-index: 0;
 }

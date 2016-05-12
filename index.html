@@ -3,10 +3,32 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Invisible Cursor</title>
+	<script src="js/math.js"></script>
 	<script src="js/app.js"></script>
 	<link rel="stylesheet" href="css/styles.css" type="text/css"/>
 </head>
 <body>
+	<section id="menu">
+		<div class="container">
+			<p>
+				Click the targets as fast as you can, but don't miss!
+				<br />
+				More points awarded for increased accuracy.
+				<br />
+				Targets shrink as you progress.
+			</p>
+			<button id="start">Start</button>
+		</div>
+	</section>
+	<section id="end">
+		<div class="container">
+			<h1 id="score"></h1>
+			<h2 id="targets"></h2>
+			<h2 id="accuracy"></h2>
+			<h2 id="time"></h2>
+			<h2 id="speed"></h2>
+		</div>
+	</section>
 	<canvas id="canvas"></canvas>
 </body>
 </html>
