@@ -2,41 +2,85 @@
 getRandomInt = (min, max) ->
 	Math.floor Math.random() * (max - min + 1) + min
 
-startGame = (game) ->
-	menu = document.getElementById 'menu'
-	start = document.getElementById 'start'
-	start.style.opacity = 0
-	menu.style.opacity = 0
-	setTimeout ->
-			start.style.visibility = 'hidden'
-		, 100
-	setTimeout ->
-			game.startGame()
-			menu.style.visibility = 'hidden'
-			menu.style.opacity = 1
-			start.style.opacity = 1
-		, 1000
+initializeViews = (game) ->
+	game.views =
+		menu:
+			new Vue
+				el: '#menu'
+				data:
+					show: true
+				methods:
+					selectMode: ->
+						this.show = false
+						game.views.modes.show = true
+					selectSettings: ->
+						this.show = false
+						game.views.settings.show = true
+					startGame: ->
+						this.show = false
+						setTimeout ->
+								game.startGame()
+							, 1000
+		modes:
+			new Vue
+				el: '#modes'
+				data:
+					show: false
+				methods:
+					back: ->
+						this.show = false
+						game.views.menu.show = true
+					selectMode: (event) ->
+						this.back()
+		settings:
+			new Vue
+				el: '#settings'
+				data:
+					show: false
+				methods:
+					back: ->
+						this.show = false
+						game.views.menu.show = true
+					enterFullscreen: ->
+						el = document.documentElement
+						if el.webkitRequestFullscreen?
+							el.webkitRequestFullscreen()
+						else if el.requestFullscreen
+							el.requestFullscreen()
+						else if el.msRequestFullscreen
+							el.msRequestFullscreen()
+						else
+							el.mozRequestFullScreen()
+						this.back()
+		gameover:
+			new Vue
+				el: '#end'
+				data:
+					show: false
+					stats: game.stats
+				methods:
+					restart: ->
+						game.initialize()
+						this.show = false
+						setTimeout ->
+							game.startGame()
+						, 1000
+					showMenu: ->
+						game.initialize()
+						this.show = false
+						game.views.menu.show = true
 
 endGame = (game) ->
-	end = document.getElementById 'end'
-	end.style.visibility = 'visible'
-	end.style.opacity = 1
-	score = document.getElementById 'score'
-	score.innerHTML = "Your score: #{game.stats.targets + Math.round10 game.stats.bonus, -1}"
-	targets = document.getElementById 'targets'
-	targets.innerHTML = "Targets hit: #{game.stats.targets}"
-	if game.stats.targets
-		accuracy = document.getElementById 'accuracy'
-		accuracy.innerHTML = "Accuracy: #{Math.round10 game.stats.bonus / game.stats.targets * 100, -2}%"
-	time = document.getElementById 'time'
-	time.innerHTML = "Time elapsed: #{Math.round10 game.stats.time, -1} seconds"
-	speed = document.getElementById 'speed'
-	speed.innerHTML = "Targets per second: #{Math.round10 game.stats.targets / game.stats.time, -2}"
+	game.views.gameover.show = true
 
 class Game
 	constructor: (@canvas, @ctx, @dimens) ->
 		@delay = undefined
 		@paused = true
+		@stats =
+			targets: 0
+			bonus: 0
+			time: 0
 		Target.image = new Image()
 		Target.image.onload = =>
 			@initialize()
@@ -74,10 +118,9 @@ class Game
 		@MIN_RADIUS = 0.25 * scalar
 		@MAX_RADIUS = 0.3 * scalar
 		@delay = undefined
-		@stats =
-			targets: 0
-			bonus: 0
-			time: 0
+		@stats.targets = 0
+		@stats.bonus = 0
+		@stats.time = 0
 		@targets = []
 		@clicks = []
 		@generateTarget() for i in [1..3]
@@ -110,6 +153,7 @@ class Game
 			click.render @ctx
 
 	process: (delta) ->
+		needsRender = false
 		if @delay isnt undefined
 			@delay.time -= delta
 			if @delay.time <= 0
@@ -120,14 +164,16 @@ class Game
 		for target in @targets
 			if not target.destroyed or target.tick delta > 0
 				newTargets.push target
+			needsRender = needsRender || target.destroyed
 		@targets = newTargets
+		needsRender = needsRender || @clicks.length > 0
 		newClicks = []
 		for click in @clicks
 			if click.tick delta > 0
 				newClicks.push click
 		@clicks = newClicks
 		@stats.time += delta / 1000
-		@render()
+		@render() if needsRender
 		@gameOver() if @targets.length is 0
 
 	tick: ->
@@ -205,10 +251,6 @@ window.onload = ->
 	canvas.height = window.innerHeight * pixelRatio
 	ctx.scale pixelRatio, pixelRatio
 	app = new Game canvas, ctx, {width: canvas.width / pixelRatio, height: canvas.height / pixelRatio, ratio: pixelRatio}
-	start = document.getElementById 'start'
-	start.onclick = ->
-#		if canvas.webkitRequestFullScreen?
-#			canvas.webkitRequestFullScreen()
-#		else
-#		canvas.mozRequestFullScreen()
-		startGame app
+	# Setup Vue instances for menus
+	initializeViews app
+
