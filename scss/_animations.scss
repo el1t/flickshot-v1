@@ -1,0 +1,10 @@
+$swift-out: cubic-bezier(.55,0,.1,1);
+
+.fade-transition {
+	opacity: 1;
+	transition: opacity 0.2s linear;
+}
+
+.fade-enter, .fade-leave {
+	opacity: 0;
+}

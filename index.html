@@ -8,7 +8,15 @@
 	<link rel="stylesheet" href="css/styles.css" type="text/css"/>
 </head>
 <body>
-	<section id="menu" v-show="show">
+	<section id="menu" v-show="show" transition="fade">
+		<h1>Flickshot</h1>
+		<button @click="select">Instructions</button>
+		<button @click="select">Change Mode</button>
+		<button @click="select">Settings</button>
+		<button @click="select">Start</button>
+	</section>
+
+	<section id="instructions" v-show="show" @click="back" transition="fade">
 		<p>
 			Click the targets as fast as you can, but don't miss!
 			<br />
@@ -16,31 +24,28 @@
 			<br />
 			Targets shrink as you progress.
 		</p>
-		<button @click="selectMode">Select Mode</button>
-		<button @click="selectSettings">Settings</button>
-		<button @click="startGame">Start</button>
 	</section>
 
-	<section id="modes" v-show="show" @click="back">
-		<button @click="selectMode">Original</button>
-		<button @click="selectMode">Flick</button>
-		<button @click="selectMode">High accuracy</button>
-		<button @click="selectMode">Practice</button>
+	<section id="modes" v-show="show" @click="back" transition="fade">
+		<button @click="select">Original</button>
+		<button @click="select">Flick</button>
+		<button @click="select">Accuracy</button>
+		<button @click="select">Practice</button>
 	</section>
 
-	<section id="settings" v-show="show" @click="back">
-		<button @click="enterFullscreen">Fullscreen</button>
+	<section id="settings" v-show="show" @click="back" transition="fade">
+		<button @click="toggleFullscreen">{{ fullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen' }}</button>
 	</section>
 
-	<section id="end" v-show="show">
+	<section id="end" v-show="show" transition="fade">
 		<h1>Your score: {{ stats.targets + Math.round10(stats.bonus, -1) }}</h1>
 		<h2>Targets hit: {{ stats.targets }}</h2>
 		<h2>Accuracy: {{ Math.round10(stats.bonus / stats.targets * 100, -2) }}%</h2>
-		<h2>Time elapsed: {{ Math.round10(stats.time, -1) }}</h2>
+		<h2>Time elapsed: {{ Math.round10(stats.time, -1) }} seconds</h2>
 		<h2>Targets per second: {{ Math.round10(stats.targets / stats.time, -2) }}</h2>
 		<button @click="restart">Restart</button>
 		<button @click="showMenu">Main Menu</button>
 	</section>
 
-	<canvas id="canvas"></canvas>
+	<canvas id="canvas" v-bind:style="styles"></canvas>
 </body>
