@@ -23,16 +23,21 @@ decimalAdjust = (type, value, exp) ->
 	return +(value[0] + 'e' + (if value[1] then (+value[1] + exp) else exp))
 
 # Decimal round
-unless Math.round10
-	Math.round10 = (value, exp) ->
-		return decimalAdjust 'round', value, exp
+Math.round10 ?= (value, exp) ->
+	return decimalAdjust 'round', value, exp
 
 # Decimal floor
-unless Math.floor10
-	Math.floor10 = (value, exp) ->
-		return decimalAdjust 'floor', value, exp
+Math.floor10 ?= (value, exp) ->
+	return decimalAdjust 'floor', value, exp
 
 # Decimal ceil
-unless Math.ceil10
-	Math.ceil10 = (value, exp) ->
-		return decimalAdjust 'ceil', value, exp
+Math.ceil10 ?= (value, exp) ->
+	return decimalAdjust 'ceil', value, exp
+
+Math.getRandom ?= (min, max) ->
+	return Math.random() * (max - min) + min
+
+Math.hypot ?= (args...) ->
+	Math.sqrt args.reduce (previous, current) ->
+			previous + current ** 2
+		, 0

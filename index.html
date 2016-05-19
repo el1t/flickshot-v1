@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <head>
 	<meta charset="UTF-8">
-	<title>Invisible Cursor</title>
+	<title>Flickshot</title>
 	<script src="js/vue.js"></script>
 	<script src="js/math.js"></script>
 	<script src="js/app.js"></script>
@@ -47,5 +47,14 @@
 		<button @click="showMenu">Main Menu</button>
 	</section>
 
-	<canvas id="canvas" v-bind:style="styles"></canvas>
+	<svg id="svg" :style="styles" xmlns="http://www.w3.org/2000/svg">
+		<rect x="0" y="0" :width="dimens.width" :height="dimens.height" @click="gameOver"></rect>
+		<rect x="0" y="0" :width="length" height="10" fill="white"></rect>
+		<circle v-for="target in targets" transition="target" @click="click($event, $index)"
+		        :cx="target.x" :cy="target.y" :r="target.r"
+		        fill="white" stroke="black" stroke-width="1"></circle>
+		<circle v-for="click in clicks" transition="click"
+		        :cx="click.x" :cy="click.y" r="5"
+		        fill="red" stroke="yellow" stroke-width="3"></circle>
+	</svg>
 </body>

@@ -1,17 +1,9 @@
-# Inclusive
-getRandomInt = (min, max) ->
-	Math.floor Math.random() * (max - min + 1) + min
-
 initializeViews = (game) ->
 	window.addEventListener 'resize', ->
-			pixelRatio = window.devicePixelRatio
 			game.dimens.width = window.innerWidth
 			game.dimens.height = window.innerHeight
-			game.canvas.width = game.dimens.width * pixelRatio
-			game.canvas.height = game.dimens.height * pixelRatio
-			game.ctx.scale pixelRatio, pixelRatio
-			game.render()
 		, true
+
 	game.views =
 		menu:
 			new Vue
@@ -20,7 +12,7 @@ initializeViews = (game) ->
 					show: true
 				methods:
 					select: (event) ->
-						this.show = false
+						@show = false
 						switch event.target.innerHTML.toLowerCase()
 							when 'instructions' then game.views.instructions.show = true
 							when 'change mode' then game.views.modes.show = true
@@ -36,7 +28,7 @@ initializeViews = (game) ->
 					show: false
 				methods:
 					back: ->
-						this.show = false
+						@show = false
 						game.views.menu.show = true
 		modes:
 			new Vue
@@ -45,14 +37,18 @@ initializeViews = (game) ->
 					show: false
 				methods:
 					back: ->
-						this.show = false
+						@show = false
 						game.views.menu.show = true
 					select: (event) ->
 						prevMode = game.mode
-						game.mode = Game.modes[event.target.innerHTML.toLowerCase()]
-						unless prevMode is game.mode
-							game.initialize()
-						this.back()
+						game.mode = Object.assign {},
+							game.mode,
+							Game.modes[event.target.innerHTML.toLowerCase()]
+						for name, property of prevMode
+							if game.mode[name] isnt property
+								game.initialize()
+								break
+						@back()
 		settings:
 			new Vue
 				el: '#settings'
@@ -61,28 +57,21 @@ initializeViews = (game) ->
 					fullscreen: false
 				methods:
 					back: ->
-						this.show = false
+						@show = false
 						game.views.menu.show = true
 					toggleFullscreen: ->
 						if document.fullscreenElement? or document.webkitFullscreenElement? or
 						document.mozFullScreenElement? or document.msFullscreenElement?
-							if document.exitFullscreen
-								document.exitFullscreen()
-							else if document.mozCancelFullScreen
-								document.mozCancelFullScreen()
-							else if document.webkitExitFullscreen
-								document.webkitExitFullscreen()
+							document.exitFullscreen?()
+							document.mozCancelFullScreen?()
+							document.webkitExitFullscreen?()
 						else
 							el = document.documentElement
-							if el.webkitRequestFullscreen
-								el.webkitRequestFullscreen()
-							else if el.requestFullscreen
-								el.requestFullscreen()
-							else if el.msRequestFullscreen
-								el.msRequestFullscreen()
-							else
-								el.mozRequestFullScreen()
-						this.fullscreen = not this.fullscreen
+							el.requestFullscreen?()
+							el.msRequestFullscreen?()
+							el.mozRequestFullScreen?()
+							el.webkitRequestFullscreen?()
+						@fullscreen = not @fullscreen
 		gameover:
 			new Vue
 				el: '#end'
@@ -92,30 +81,51 @@ initializeViews = (game) ->
 				methods:
 					restart: ->
 						game.initialize()
-						this.show = false
+						@show = false
 						setTimeout ->
 							game.startGame()
 						, 1000
 					showMenu: ->
 						game.initialize()
-						this.show = false
+						@show = false
 						game.views.menu.show = true
-		canvas:
+		game:
 			new Vue
-				el: '#canvas'
+				el: '#svg'
 				data:
 					mouse: true
+					time: game.mode.time
+					totalTime: game.mode.time
+					targets: game.targets
+					clicks: game.clicks
+					dimens: game.dimens
 				computed:
 					styles: ->
 						cursor:
-							if this.mouse then 'auto' else 'none'
-
-endGame = (game) ->
-	game.views.gameover.show = true
+							if @mouse then 'auto' else 'none'
+					length: ->
+						return @dimens.width * @time / @totalTime
+				methods:
+					click: (e, index) ->
+						unless game.paused
+							@clicks.push
+								x: e.pageX
+								y: e.pageY
+							setTimeout =>
+									@clicks.shift()
+								, 50
+							game.click @targets[index], e.pageX, e.pageY
+					gameOver: (e) ->
+						unless game.paused
+							@clicks.push
+								x: e.pageX
+								y: e.pageY
+							game.gameOver()
+						return
 
 class Game
 	@modes =
-		normal:
+		original:
 			rMin: 0.25
 			rMax: 0.3
 			growth: 0.95
@@ -131,6 +141,7 @@ class Game
 			rMin: 0.15
 			rMax: 0.15
 			growth: 1
+			targetCount: 1
 			delay: true
 			time: 1500
 		accuracy:
@@ -145,74 +156,85 @@ class Game
 			growth: 1
 			targetCount: 3
 			showCursor: true
-	constructor: (@canvas, @ctx, @dimens) ->
+			time: 5000
+	# Assign default properties and fill in unspecified properties with 0
+	@setupModes = ->
+		# Fill in default properties
+		defaultProperties =
+			rMin: 0.25
+			rMax: 0.3
+			growth: 0.95
+			targetCount: 3
+			time: 3000
+			delay: false
+			showCursor: false
+		for own _, mode of @modes
+			for own property of defaultProperties
+				unless mode[property]?
+					mode[property] = defaultProperties[property]
+		# Fill new properties with 0
+		properties = []
+		for own _, mode of @modes
+			for own property of mode
+				unless property of defaultProperties or property in properties
+					properties.push property
+		for own _, mode of @modes
+			for property in properties
+				unless mode[property]?
+					mode[property] = 0
+
+	constructor: (@dimens) ->
 		@paused = true
 		@stats =
 			targets: 0
 			bonus: 0
 			time: 0
-		@mode = Game.modes.normal
-		Target.image = new Image()
-		Target.image.onload = =>
-			@initialize()
-			return
-		Target.image.src = 'target.svg'
-		canvas.addEventListener 'mousedown', (e) =>
-			@clickHandler e.pageX - e.target.offsetLeft, e.pageY - e.target.offsetTop unless @paused
+		@targets = []
+		@clicks = []
+		@mode = Game.modes.original
 		# For ticking:
 		@lastTime = @prevElapsed = @prevElapsed2 = 0
+		@initialize()
 
-	clickHandler: (x, y) ->
-		@clicks.push new Click x, y
-		for target in @targets by -1
-			if not target.destroyed
-				distance = target.clickBonus x, y
-				if distance <= target.radius
-					@stats.targets++
-					@time = Math.min @time + @mode.time / 3, @mode.time
-					@stats.bonus += 1 - distance / target.radius
-					@shrinkRadii() if @stats.targets <= 100 and @stats.targets % 10 is 0
-					target.destroy() # Signal clicked
-					@generateTarget()
-					return
-		# Didn't click a circle
-		@gameOver()
-		return
+	click: (target, x, y) ->
+		@stats.targets++
+		@views.game.time = Math.min @views.game.time + @views.game.totalTime / 3, @views.game.totalTime
+		@stats.bonus += target.clickBonus x, y
+		@shrinkRadii() if @stats.targets <= 100 and @stats.targets % 10 is 0
+		@targets.$remove target
+		@generateTarget()
+		return true
 
 	startGame: ->
 		@paused = false
-#		@canvas.style.cursor = 'none'
-		@views.canvas.mouse = @mode.showCursor
+		@views.game.mouse = @mode.showCursor
+		@lastTime = Date.now()
 		requestAnimationFrame => @tick()
 
 	initialize: ->
-		scalar = Math.min @dimens.width, @dimens.height
-		@rMin = @mode.rMin * scalar
-		@rMax = @mode.rMax * scalar
-		@time = @mode.time
+		@scalar = Math.min @dimens.width, @dimens.height
+		@rMin = @mode.rMin * @scalar
+		@rMax = @mode.rMax * @scalar
+		if @views? then @views.game.time = @views.game.totalTime = @mode.time
 		@stats.targets = 0
 		@stats.bonus = 0
 		@stats.time = 0
-		@targets = []
-		@clicks = []
+		@targets.pop() for i in [1..@targets.length]
+		@clicks.pop() for i in [1..@clicks.length]
 		@generateTarget() for i in [1..@mode.targetCount]
 		@paused = true
-		@render()
 		return
 
 	gameOver: ->
-#		@canvas.style.cursor = 'auto'
-		@views.canvas.mouse = true
-		endGame this
+		@views.game.mouse = true
+		@views.gameover.show = true
 		@paused = true
-		@render()
 		return
 
 	generateTarget: ->
-		target = new Target getRandomInt(0, @dimens.width - 2 * @rMax),
-			getRandomInt(0, @dimens.height - 2 * @rMax),
-			getRandomInt(@rMin, @rMax),
-			@rMin * 0.7
+		target = new Target Math.getRandom(@rMax, @dimens.width - @rMax),
+			Math.getRandom(@rMax, @dimens.height - @rMax),
+			Math.getRandom(@rMin, @rMax)
 		@targets.push target
 		return
 
@@ -221,40 +243,14 @@ class Game
 		@rMax *= @mode.growth
 		return
 
-	render: (fullRender=true) ->
-		if (fullRender)
-			# Clear screen
-			@ctx.clearRect 0, 0, @dimens.width, @dimens.height
-			for target in @targets
-				target.render @ctx
-			for click in @clicks
-				click.render @ctx
-		@ctx.save()
-		@ctx.fillStyle = 'white'
-		@ctx.fillRect 0, @dimens.height - 10, @dimens.width, 10
-		@ctx.fillStyle = 'red'
-		@ctx.fillRect @time / @mode.time * @dimens.width, @dimens.height - 10, @dimens.width, 10
-		@ctx.restore()
-		return
-
 	process: (delta) ->
-		needsRender = false
-		newTargets = []
-		for target in @targets
-			if not target.destroyed or target.tick delta > 0
-				newTargets.push target
-			needsRender = needsRender || target.destroyed
-		@targets = newTargets
-		needsRender = needsRender || @clicks.length > 0
-		newClicks = []
-		for click in @clicks
-			if click.tick delta > 0
-				newClicks.push click
-		@clicks = newClicks
-		@time -= delta
+		if @views.game.time - delta <= 0
+			@views.game.time = 0
+			@gameOver()
+			return
+		@views.game.time -= delta
 		@stats.time += delta / 1000
-		@render(needsRender)
-		@gameOver() if @targets.length is 0 or @time < 0
+		@gameOver() if @targets.length is 0
 		return
 
 	tick: ->
@@ -270,70 +266,14 @@ class Game
 				@prevElapsed = elapsed
 
 class Target
-	@image = undefined
-	@animationLength = 10
-	constructor: (@x, @y, @radius, @minRadius) ->
-		@destroyed = false
+	constructor: (@x, @y, @r) ->
 
 	clickBonus: (x, y) ->
-		Math.sqrt(Math.pow(@x + @radius - x, 2) + Math.pow(@y + @radius - y, 2))
-
-	destroy: ->
-		@ttl = Target.animationLength
-		@destroyed = true
-
-	render: (ctx) ->
-		ctx.save()
-		# Draw svg
-		ctx.globalAlpha = @ttl / Target.animationLength if @destroyed
-		ctx.drawImage Target.image, @x, @y, @radius * 2, @radius * 2
-		# Add outline
-		ctx.beginPath()
-		ctx.arc @x + @radius, @y + @radius, @radius + 0.5, 0, 2 * Math.PI, false
-		ctx.lineWidth = 1
-		ctx.strokeStyle = 'black'
-		ctx.stroke()
-		ctx.restore()
-		return
-
-	tick: (delta) ->
-		# Animate growth
-		@x -= delta / 2
-		@y -= delta / 2
-		@radius += delta
-		@ttl -= delta
-
-
-class Click
-	@timeout = 20
-	constructor: (@x, @y) ->
-		@ttl = Click.timeout
-
-	render: (ctx) ->
-		ctx.save()
-		ctx.globalAlpha = @ttl / Click.timeout
-		ctx.beginPath()
-		ctx.arc @x, @y, 5, 0, 2 * Math.PI, false
-		ctx.fillStyle = 'red'
-		ctx.fill()
-		ctx.lineWidth = 2
-		ctx.strokeStyle = 'yellow'
-		ctx.stroke()
-		ctx.restore()
-		return
-
-	tick: (delta) ->
-		@ttl -= delta
+		return 1 - Math.hypot((@x - x), (@y - y)) / @r
 
 window.onload = ->
-	canvas = document.getElementById 'canvas'
-	ctx = canvas.getContext '2d'
-	# Handle high-DPI displays
-	pixelRatio = window.devicePixelRatio
-	canvas.width = window.innerWidth * pixelRatio
-	canvas.height = window.innerHeight * pixelRatio
-	ctx.scale pixelRatio, pixelRatio
-	app = new Game canvas, ctx, {width: window.innerWidth, height: window.innerHeight}
+	Game.setupModes()
+	app = new Game {width: window.innerWidth, height: window.innerHeight}
 	# Setup Vue instances for menus
 	initializeViews app
 

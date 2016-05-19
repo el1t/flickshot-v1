@@ -8,3 +8,22 @@ $swift-out: cubic-bezier(.55,0,.1,1);
 .fade-enter, .fade-leave {
 	opacity: 0;
 }
+
+.target-transition {
+	opacity: 1;
+	transition: opacity 0.15s linear;
+}
+
+.target-enter {
+	opacity: 1;
+}
+.target-leave, .click-leave {
+	pointer-events: none;
+	opacity: 0 !important;
+}
+
+.click-transition {
+	opacity: 1;
+	pointer-events: none;
+	transition: opacity 0.2s linear;
+}
