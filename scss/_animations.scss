@@ -3,27 +3,28 @@ $swift-out: cubic-bezier(.55,0,.1,1);
 .fade-transition {
 	opacity: 1;
 	transition: opacity 0.2s linear;
+
+	&.fade-enter, &.fade-leave {
+		opacity: 0;
+	}
 }
 
-.fade-enter, .fade-leave {
-	opacity: 0;
-}
+#svg {
+	.target-transition {
+		opacity: 1;
+		transition: opacity 0.15s linear;
+		&.target-leave {
+			@extend .fade-transition.fade-leave;
+			pointer-events: none;
+		}
+	}
 
-.target-transition {
-	opacity: 1;
-	transition: opacity 0.15s linear;
-}
-
-.target-enter {
-	opacity: 1;
-}
-.target-leave, .click-leave {
-	pointer-events: none;
-	opacity: 0 !important;
-}
-
-.click-transition {
-	opacity: 1;
-	pointer-events: none;
-	transition: opacity 0.2s linear;
+	.click-transition {
+		opacity: 1;
+		pointer-events: none;
+		transition: opacity 0.2s linear;
+		&.click-leave {
+			@extend .target-transition.target-leave
+		}
+	}
 }

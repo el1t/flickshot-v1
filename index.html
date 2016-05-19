@@ -47,10 +47,9 @@
 		<button @click="showMenu">Main Menu</button>
 	</section>
 
-	<svg id="svg" :style="styles" xmlns="http://www.w3.org/2000/svg">
-		<rect x="0" y="0" :width="dimens.width" :height="dimens.height" @click="gameOver"></rect>
+	<svg id="svg" :style="styles" xmlns="http://www.w3.org/2000/svg" @click="click">
 		<rect x="0" y="0" :width="length" height="10" fill="white"></rect>
-		<circle v-for="target in targets" transition="target" @click="click($event, $index)"
+		<circle v-for="target in targets" transition="target" @click.stop="click($event, $index)"
 		        :cx="target.x" :cy="target.y" :r="target.r"
 		        fill="white" stroke="black" stroke-width="1"></circle>
 		<circle v-for="click in clicks" transition="click"

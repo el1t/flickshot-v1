@@ -111,17 +111,13 @@ initializeViews = (game) ->
 							@clicks.push
 								x: e.pageX
 								y: e.pageY
+							unless index?
+								game.gameOver()
+								return
 							setTimeout =>
 									@clicks.shift()
 								, 50
 							game.click @targets[index], e.pageX, e.pageY
-					gameOver: (e) ->
-						unless game.paused
-							@clicks.push
-								x: e.pageX
-								y: e.pageY
-							game.gameOver()
-						return
 
 class Game
 	@modes =
@@ -203,7 +199,6 @@ class Game
 		@shrinkRadii() if @stats.targets <= 100 and @stats.targets % 10 is 0
 		@targets.$remove target
 		@generateTarget()
-		return true
 
 	startGame: ->
 		@paused = false
@@ -223,25 +218,21 @@ class Game
 		@clicks.pop() for i in [1..@clicks.length]
 		@generateTarget() for i in [1..@mode.targetCount]
 		@paused = true
-		return
 
 	gameOver: ->
 		@views.game.mouse = true
 		@views.gameover.show = true
 		@paused = true
-		return
 
 	generateTarget: ->
 		target = new Target Math.getRandom(@rMax, @dimens.width - @rMax),
 			Math.getRandom(@rMax, @dimens.height - @rMax),
 			Math.getRandom(@rMin, @rMax)
 		@targets.push target
-		return
 
 	shrinkRadii: ->
 		@rMin *= @mode.growth
 		@rMax *= @mode.growth
-		return
 
 	process: (delta) ->
 		if @views.game.time - delta <= 0
@@ -251,7 +242,6 @@ class Game
 		@views.game.time -= delta
 		@stats.time += delta / 1000
 		@gameOver() if @targets.length is 0
-		return
 
 	tick: ->
 		requestAnimationFrame => @tick() unless @paused
