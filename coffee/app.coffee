@@ -159,7 +159,6 @@ class Game
 			time: 5000
 	# Assign default properties and fill in unspecified properties with 0
 	@setupModes = ->
-		# Fill in default properties
 		defaultProperties =
 			rMin: 0.25
 			rMax: 0.3
@@ -168,16 +167,17 @@ class Game
 			time: 3000
 			delay: false
 			showCursor: false
-		for own _, mode of @modes
-			for own property of defaultProperties
-				unless mode[property]?
-					mode[property] = defaultProperties[property]
-		# Fill new properties with 0
 		properties = []
 		for own _, mode of @modes
+			# Collect unknown properties
 			for own property of mode
 				unless property of defaultProperties or property in properties
 					properties.push property
+			# Fill in default properties
+			for own property of defaultProperties
+				unless mode[property]?
+					mode[property] = defaultProperties[property]
+		# Fill in unspecified properties
 		for own _, mode of @modes
 			for property in properties
 				unless mode[property]?
