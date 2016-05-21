@@ -38,13 +38,21 @@
 	</section>
 
 	<section id="end" v-show="show" transition="fade">
-		<h1>Your score: {{ stats.targets + Math.round10(stats.bonus, -1) }}</h1>
+		<h1>Your score: {{ stats.targets + Math.round(stats.bonus) }}</h1>
 		<h2>Targets hit: {{ stats.targets }}</h2>
 		<h2>Accuracy: {{ Math.round10(stats.bonus / stats.targets * 100, -2) }}%</h2>
 		<h2>Time elapsed: {{ Math.round10(stats.time, -1) }} seconds</h2>
 		<h2>Targets per second: {{ Math.round10(stats.targets / stats.time, -2) }}</h2>
 		<button @click="restart">Restart</button>
 		<button @click="showMenu">Main Menu</button>
+	</section>
+
+	<section id="countdown" v-show="show" transition="fade">
+		<div v-show="!animate" transition="countdown">
+			<h1>3</h1>
+			<h1>2</h1>
+			<h1>1</h1>
+		</div>
 	</section>
 
 	<svg id="svg" :style="styles" xmlns="http://www.w3.org/2000/svg" @click="click">

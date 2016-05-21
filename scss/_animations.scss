@@ -4,17 +4,26 @@ $swift-out: cubic-bezier(.55,0,.1,1);
 	opacity: 1;
 	transition: opacity 0.2s linear;
 
-	&.fade-enter, &.fade-leave {
+	&.fade-enter {
 		opacity: 0;
+	}
+
+	&.fade-leave {
+		@extend .fade-enter;
+		pointer-events: none;
 	}
 }
 
 #svg {
 	.target-transition {
 		opacity: 1;
-		transition: opacity 0.15s linear;
+		transition-property: -webkit-transform, -moz-transform, -o-transform, transform, opacity;
+		transition-duration: 0.15s;
+		transition-timing-function: linear;
 		&.target-leave {
 			@extend .fade-transition.fade-leave;
+			transform: scale(1.1);
+			transform-origin: center;
 			pointer-events: none;
 		}
 	}
@@ -28,3 +37,28 @@ $swift-out: cubic-bezier(.55,0,.1,1);
 		}
 	}
 }
+
+$digit-height: 100%;
+.countdown-transition {
+	&.countdown-leave {
+		animation: countdown 3s $swift-out;
+	}
+}
+
+@mixin animate($count) {
+	0% { transform: translateY($digit-height); }
+	$step: (100 / ($count));
+	$progress: (50 / ($count));
+	$translate: 0;
+	@while $progress <= (100 - 50/($count) + 0.5) {
+		#{$progress}% { transform: translateY($translate); }
+		$progress: $progress + $step;
+		$translate: $translate - $digit-height;
+	}
+	100% { transform: translateY($translate); }
+}
+
+@keyframes countdown {
+	@include animate(3);
+}
+

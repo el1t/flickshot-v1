@@ -4,6 +4,12 @@ initializeViews = (game) ->
 			game.dimens.height = window.innerHeight
 		, true
 
+	Vue.transition 'countdown',
+		type: 'animation'
+		afterLeave: ->
+			game.views.countdown.hide()
+			game.startGame()
+
 	game.views =
 		menu:
 			new Vue
@@ -17,10 +23,7 @@ initializeViews = (game) ->
 							when 'instructions' then game.views.instructions.show = true
 							when 'change mode' then game.views.modes.show = true
 							when 'settings' then game.views.settings.show = true
-							when 'start'
-								setTimeout ->
-									game.startGame()
-								, 1000
+							when 'start' then game.views.countdown.start()
 		instructions:
 			new Vue
 				el: '#instructions'
@@ -82,13 +85,26 @@ initializeViews = (game) ->
 					restart: ->
 						game.initialize()
 						@show = false
-						setTimeout ->
-							game.startGame()
-						, 1000
+						game.views.countdown.start()
 					showMenu: ->
 						game.initialize()
 						@show = false
 						game.views.menu.show = true
+		countdown:
+			new Vue
+				el: '#countdown'
+				data:
+					show: false
+					animate: false
+				methods:
+					start: ->
+						@show = true
+						@animate = true
+					hide: ->
+						@show = false
+						setTimeout =>
+								@animate = false
+							, 300
 		game:
 			new Vue
 				el: '#svg'
