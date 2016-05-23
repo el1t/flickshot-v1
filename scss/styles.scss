@@ -1,4 +1,5 @@
 @import url(https://fonts.googleapis.com/css?family=Roboto);
+@import 'mixins';
 @import 'animations';
 
 html, body {
@@ -11,6 +12,8 @@ html, body {
 
 * {
 	box-sizing: border-box;
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+	-webkit-tap-highlight-color: transparent;
 }
 
 %fullscreen {
@@ -45,7 +48,7 @@ section {
 		color: white;
 	}
 
-	h1, h2 {
+	h1, h2, label {
 		@extend %unselectable;
 		align-self: center;
 		color: white;
@@ -70,6 +73,7 @@ h1 {
 	div {
 		height: 100%;
 		h1 {
+			@extend %unselectable;
 			display: inline-block;
 			height: 20rem;
 			width: 100%;
@@ -92,10 +96,70 @@ button {
 	border: none;
 	border-radius: 1rem;
 	user-select: none;
-	transition: color 0.1s linear;
+	transition: color 0.1s linear, transform 0.05s linear;
 	align-self: center;
 	&:active {
-		color: gray;
+		color: inherit;
+		transform: scale(0.9);
+	}
+}
+
+input[type=range] {
+	&, &::-webkit-slider-runnable-track, &::-webkit-slider-thumb {
+		-webkit-appearance: none;
+	}
+	width: 100%;
+	background: transparent;
+	@include slider(thumb) {
+		background: transparent;
+		border-radius: 50%;
+		border: 2px solid white;
+		cursor: ew-resize;
+		height: 1rem;
+		width: 1rem;
+		transition: transform 0.1s linear, border 0.1s linear;
+	}
+	@include slider(track) {
+		width: 5rem;
+		height: 1rem;
+		cursor: pointer;
+		background: rgba(0, 0, 0, 0.5);
+		border-radius: 1rem;
+		box-shadow: 0 0 0 1px white;
+		transition: background-color 0.1s linear;
+	}
+	&:focus {
+		outline: none;
+	}
+	&:active {
+		@include slider(thumb) {
+			transform: scale(0.8);
+			border: 0.5rem solid white;
+		}
+	}
+}
+
+input[type=checkbox] {
+	display: none;
+	& + label {
+		display: inline-block;
+		cursor: pointer;
+		pointer-events: auto;
+		&:before {
+			content: '';
+			display: inline-block;
+			width: 1rem;
+			height: 1rem;
+			margin-bottom: -0.25rem;
+			margin-right: 0.5rem;
+			border-radius: 50%;
+			background-color: blue;
+			box-shadow: 0 0 0 1rem white inset;
+			transition: box-shadow 0.15s linear;
+		}
+	}
+	&:checked + label:before {
+		box-shadow: 0 0 0 0.25rem white inset;
 	}
 }
 

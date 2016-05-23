@@ -31,10 +31,27 @@
 		<button @click="select">Flick</button>
 		<button @click="select">Accuracy</button>
 		<button @click="select">Practice</button>
+		<button @click.stop="select">Custom</button>
+	</section>
+
+	<section id="custom" v-show="show" transition="fade">
+		<label for="radius-min">Minimum Radius: {{ mode.rMin }}</label>
+		<input id="radius-min" type="range" min="0.05" :max="mode.rMax" step="0.05" v-model="mode.rMin">
+		<label for="radius-max">Maximum Radius: {{ mode.rMax }}</label>
+		<input id="radius-max" type="range" :min="mode.rMin" max="0.7" step="0.05" v-model="mode.rMax">
+		<label for="target-count">Number of targets: {{ mode.targetCount }}</label>
+		<input id="target-count" type="range" min="1" max="10" v-model="mode.targetCount">
+		<label for="growth">Shrink Factor: {{ mode.growth }}</label>
+		<input id="growth" type="range" min="0.1" max="1" step="0.01" v-model="mode.growth">
+		<input id="show-cursor" type="checkbox" v-model="mode.showCursor">
+		<label for="show-cursor">Show cursor</label>
+		<label for="time">Time: {{ mode.time / 1000 }}s</label>
+		<input id="time" type="range" min="0" max="10000" step="100" v-model="mode.time" number>
+		<button @click="select">Save</button>
 	</section>
 
 	<section id="settings" v-show="show" @click="back" transition="fade">
-		<button @click="toggleFullscreen">{{ fullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen' }}</button>
+		<button @click.stop="toggleFullscreen">{{ fullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen' }}</button>
 	</section>
 
 	<section id="end" v-show="show" transition="fade">

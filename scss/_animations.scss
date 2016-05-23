@@ -17,7 +17,7 @@ $swift-out: cubic-bezier(.55,0,.1,1);
 #svg {
 	.target-transition {
 		opacity: 1;
-		transition-property: -webkit-transform, -moz-transform, -o-transform, transform, opacity;
+		transition-property: transform, opacity;
 		transition-duration: 0.15s;
 		transition-timing-function: linear;
 		&.target-leave {

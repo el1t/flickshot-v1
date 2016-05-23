@@ -43,15 +43,29 @@ initializeViews = (game) ->
 						@show = false
 						game.views.menu.show = true
 					select: (event) ->
-						prevMode = game.mode
-						game.mode = Object.assign {},
-							game.mode,
-							Game.modes[event.target.innerHTML.toLowerCase()]
-						for name, property of prevMode
-							if game.mode[name] isnt property
+						if event.target.innerHTML.toLowerCase() is 'custom'
+							@show = false
+							game.views.custom.show = true
+							return
+						needInitialization = false
+						for own name, property of Game.modes[event.target.innerHTML.toLowerCase()]
+							needInitialization ||= game.mode[name] isnt property
+							game.mode[name] = property
+						game.initialize() if needInitialization
+		custom:
+			new Vue
+				el: '#custom'
+				data:
+					show: false
+					mode: game.mode
+				methods:
+					select: (event) ->
+						@show = false
+						switch event.target.innerHTML.toLowerCase()
+							when 'save'
 								game.initialize()
-								break
-						@back()
+								game.views.menu.show = true
+								console.log Game.modes
 		settings:
 			new Vue
 				el: '#settings'
@@ -68,6 +82,7 @@ initializeViews = (game) ->
 							document.exitFullscreen?()
 							document.mozCancelFullScreen?()
 							document.webkitExitFullscreen?()
+							document.msExitFullscreen?()
 						else
 							el = document.documentElement
 							el.requestFullscreen?()
@@ -203,7 +218,9 @@ class Game
 			time: 0
 		@targets = []
 		@clicks = []
-		@mode = Game.modes.original
+		@mode = {}
+		for own name, property of Game.modes.original
+			@mode[name] = property
 		# For ticking:
 		@lastTime = @prevElapsed = @prevElapsed2 = 0
 		@initialize()
@@ -282,4 +299,3 @@ window.onload = ->
 	app = new Game {width: window.innerWidth, height: window.innerHeight}
 	# Setup Vue instances for menus
 	initializeViews app
-
