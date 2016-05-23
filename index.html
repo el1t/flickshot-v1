@@ -1,84 +1,78 @@
 <!DOCTYPE html>
-<head>
-	<meta charset="UTF-8">
-	<title>Flickshot</title>
-	<script src="js/vue.js"></script>
-	<script src="js/math.js"></script>
-	<script src="js/app.js"></script>
-	<link rel="stylesheet" href="css/styles.css" type="text/css"/>
-</head>
-<body>
-	<section id="menu" v-show="show" transition="fade">
-		<h1>Flickshot</h1>
-		<button @click="select">Instructions</button>
-		<button @click="select">Change Mode</button>
-		<button @click="select">Settings</button>
-		<button @click="select">Start</button>
-	</section>
 
-	<section id="instructions" v-show="show" @click="back" transition="fade">
-		<p>
-			Click the targets as fast as you can, but don't miss!
-			<br />
-			More points awarded for increased accuracy.
-			<br />
-			Targets shrink as you progress.
-		</p>
-	</section>
+<meta charset="UTF-8">
+<title>Flickshot</title>
+<script src="js/vue.js"></script>
+<script src="js/math.js"></script>
+<script src="js/app.js"></script>
+<link rel="stylesheet" href="css/styles.css" type="text/css">
 
-	<section id="modes" v-show="show" @click="back" transition="fade">
-		<button @click="select">Original</button>
-		<button @click="select">Flick</button>
-		<button @click="select">Accuracy</button>
-		<button @click="select">Practice</button>
-		<button @click.stop="select">Custom</button>
-	</section>
+<section id="menu" v-show="show" transition="fade">
+	<h1>Flickshot</h1>
+	<button @click="select">Instructions</button>
+	<button @click="select">Change Mode</button>
+	<button @click="select">Settings</button>
+	<button @click="select">Start</button>
+</section>
 
-	<section id="custom" v-show="show" transition="fade">
-		<label for="radius-min">Minimum Radius: {{ mode.rMin }}</label>
-		<input id="radius-min" type="range" min="0.05" :max="mode.rMax" step="0.05" v-model="mode.rMin">
-		<label for="radius-max">Maximum Radius: {{ mode.rMax }}</label>
-		<input id="radius-max" type="range" :min="mode.rMin" max="0.7" step="0.05" v-model="mode.rMax">
-		<label for="target-count">Number of targets: {{ mode.targetCount }}</label>
-		<input id="target-count" type="range" min="1" max="10" v-model="mode.targetCount">
-		<label for="growth">Shrink Factor: {{ mode.growth }}</label>
-		<input id="growth" type="range" min="0.1" max="1" step="0.01" v-model="mode.growth">
-		<input id="show-cursor" type="checkbox" v-model="mode.showCursor">
-		<label for="show-cursor">Show cursor</label>
-		<label for="time">Time: {{ mode.time / 1000 }}s</label>
-		<input id="time" type="range" min="0" max="10000" step="100" v-model="mode.time" number>
-		<button @click="select">Save</button>
-	</section>
+<section id="instructions" v-show="show" @click="back" transition="fade">
+	<p>Click the targets as fast as you can, but don't miss!
+	<p>More points awarded for increased accuracy.
+	<p>Targets shrink as you progress.
+</section>
 
-	<section id="settings" v-show="show" @click="back" transition="fade">
-		<button @click.stop="toggleFullscreen">{{ fullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen' }}</button>
-	</section>
+<section id="modes" v-show="show" @click="back" transition="fade">
+	<button @click="select">Original</button>
+	<button @click="select">Flick</button>
+	<button @click="select">Accuracy</button>
+	<button @click="select">Practice</button>
+	<button @click.stop="select">Custom</button>
+</section>
 
-	<section id="end" v-show="show" transition="fade">
-		<h1>Your score: {{ stats.targets + Math.round(stats.bonus) }}</h1>
-		<h2>Targets hit: {{ stats.targets }}</h2>
-		<h2>Accuracy: {{ Math.round10(stats.bonus / stats.targets * 100, -2) }}%</h2>
-		<h2>Time elapsed: {{ Math.round10(stats.time, -1) }} seconds</h2>
-		<h2>Targets per second: {{ Math.round10(stats.targets / stats.time, -2) }}</h2>
-		<button @click="restart">Restart</button>
-		<button @click="showMenu">Main Menu</button>
-	</section>
+<section id="custom" v-show="show" transition="fade">
+	<label for="radius-min">Minimum Radius: {{ mode.rMin }}</label>
+	<input id="radius-min" type="range" min="0.05" :max="mode.rMax" step="0.05" v-model="mode.rMin">
+	<label for="radius-max">Maximum Radius: {{ mode.rMax }}</label>
+	<input id="radius-max" type="range" :min="mode.rMin" max="0.7" step="0.05" v-model="mode.rMax">
+	<label for="target-count">Number of targets: {{ mode.targetCount }}</label>
+	<input id="target-count" type="range" min="1" max="10" v-model="mode.targetCount">
+	<label for="growth">Shrink Factor: {{ mode.growth }}</label>
+	<input id="growth" type="range" min="0.1" max="1" step="0.01" v-model="mode.growth">
+	<input id="show-cursor" type="checkbox" v-model="mode.showCursor">
+	<label for="show-cursor">Show cursor</label>
+	<label for="time">Time: {{ mode.time / 1000 }}s</label>
+	<input id="time" type="range" min="0" max="10000" step="100" v-model="mode.time" number>
+	<button @click="select">Save</button>
+</section>
 
-	<section id="countdown" v-show="show" transition="fade">
-		<div v-show="!animate" transition="countdown">
-			<h1>3</h1>
-			<h1>2</h1>
-			<h1>1</h1>
-		</div>
-	</section>
+<section id="settings" v-show="show" @click="back" transition="fade">
+	<button @click.stop="toggleFullscreen">{{ fullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen' }}</button>
+</section>
 
-	<svg id="svg" :style="styles" xmlns="http://www.w3.org/2000/svg" @click="click">
-		<rect x="0" y="0" :width="length" height="10" fill="white"></rect>
-		<circle v-for="target in targets" transition="target" @click.stop="click($event, $index)"
-		        :cx="target.x" :cy="target.y" :r="target.r"
-		        fill="white" stroke="black" stroke-width="1"></circle>
-		<circle v-for="click in clicks" transition="click"
-		        :cx="click.x" :cy="click.y" r="5"
-		        fill="red" stroke="yellow" stroke-width="3"></circle>
-	</svg>
-</body>
+<section id="end" v-show="show" transition="fade">
+	<h2>Your score: {{ stats.targets + Math.round(stats.bonus) }}</h2>
+	<h3>Targets hit: {{ stats.targets }}</h3>
+	<h3>Accuracy: {{ Math.round10(stats.bonus / stats.targets * 100, -2) }}%</h3>
+	<h3>Time elapsed: {{ Math.round10(stats.time, -1) }} seconds</h3>
+	<h3>Targets per second: {{ Math.round10(stats.targets / stats.time, -2) }}</h3>
+	<button @click="restart">Restart</button>
+	<button @click="showMenu">Main Menu</button>
+</section>
+
+<section id="countdown" v-show="show" transition="fade">
+	<ol v-show="!animate" transition="countdown">
+		<li>3
+		<li>2
+		<li>1
+	</ol>
+</section>
+
+<svg id="svg" :style="styles" xmlns="http://www.w3.org/2000/svg" @click="click">
+	<rect x="0" y="0" :width="length" height="10" fill="white"></rect>
+	<circle v-for="target in targets" transition="target" @click.stop="click($event, $index)"
+	        :cx="target.x" :cy="target.y" :r="target.r"
+	        fill="white" stroke="black" stroke-width="1"></circle>
+	<circle v-for="click in clicks" transition="click"
+	        :cx="click.x" :cy="click.y" r="5"
+	        fill="red" stroke="yellow" stroke-width="3"></circle>
+</svg>
