@@ -134,6 +134,8 @@ initializeViews = (game) ->
 					styles: ->
 						cursor:
 							if @mouse then 'auto' else 'none'
+						opacity:
+							if game.paused then 0.5 else 1
 					length: ->
 						return @dimens.width * @time / @totalTime
 				methods:

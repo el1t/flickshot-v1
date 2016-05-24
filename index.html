@@ -7,7 +7,7 @@
 <script src="js/app.js"></script>
 <link rel="stylesheet" href="css/styles.css" type="text/css">
 
-<section id="menu" v-show="show" transition="fade">
+<section id="menu" v-show="show" transition="slide">
 	<h1>Flickshot</h1>
 	<button @click="select">Instructions</button>
 	<button @click="select">Change Mode</button>
@@ -15,13 +15,13 @@
 	<button @click="select">Start</button>
 </section>
 
-<section id="instructions" v-show="show" @click="back" transition="fade">
+<section id="instructions" v-show="show" @click="back" transition="slide">
 	<p>Click the targets as fast as you can, but don't miss!
 	<p>More points awarded for increased accuracy.
 	<p>Targets shrink as you progress.
 </section>
 
-<section id="modes" v-show="show" @click="back" transition="fade">
+<section id="modes" v-show="show" @click="back" transition="slide">
 	<button @click="select">Original</button>
 	<button @click="select">Flick</button>
 	<button @click="select">Accuracy</button>
@@ -29,7 +29,7 @@
 	<button @click.stop="select">Custom</button>
 </section>
 
-<section id="custom" v-show="show" transition="fade">
+<section id="custom" v-show="show" transition="slide-pairs">
 	<label for="radius-min">Minimum Radius: {{ mode.rMin }}</label>
 	<input id="radius-min" type="range" min="0.05" :max="mode.rMax" step="0.05" v-model="mode.rMin">
 	<label for="radius-max">Maximum Radius: {{ mode.rMax }}</label>
@@ -45,11 +45,11 @@
 	<button @click="select">Save</button>
 </section>
 
-<section id="settings" v-show="show" @click="back" transition="fade">
+<section id="settings" v-show="show" @click="back" transition="slide">
 	<button @click.stop="toggleFullscreen">{{ fullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen' }}</button>
 </section>
 
-<section id="end" v-show="show" transition="fade">
+<section id="end" v-show="show" transition="slide">
 	<h2>Your score: {{ stats.targets + Math.round(stats.bonus) }}</h2>
 	<h3>Targets hit: {{ stats.targets }}</h3>
 	<h3>Accuracy: {{ Math.round10(stats.bonus / stats.targets * 100, -2) }}%</h3>
@@ -59,7 +59,7 @@
 	<button @click="showMenu">Main Menu</button>
 </section>
 
-<section id="countdown" v-show="show" transition="fade">
+<section id="countdown" v-show="show">
 	<ol v-show="!animate" transition="countdown">
 		<li>3
 		<li>2
