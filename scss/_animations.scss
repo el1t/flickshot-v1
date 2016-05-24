@@ -39,10 +39,8 @@ $swift-out: cubic-bezier(.55,0,.1,1);
 }
 
 $digit-height: 100%;
-.countdown-transition {
-	&.countdown-leave {
-		animation: countdown 3s $swift-out;
-	}
+.countdown-transition.countdown-leave {
+	animation: countdown 3s $swift-out;
 }
 
 @mixin animate($count) {
@@ -61,4 +59,3 @@ $digit-height: 100%;
 @keyframes countdown {
 	@include animate(3);
 }
-

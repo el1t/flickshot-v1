@@ -18,6 +18,8 @@ html, body {
 
 h1, h2, h3, h4, h5, h6, li, p {
 	color: white;
+	margin: 0;
+	padding: 0;
 }
 h1 {
 	font-size: 3rem;
@@ -58,14 +60,11 @@ section {
 		width: 100%;
 		font-size: 2rem;
 		text-align: center;
-		padding: 0;
-		margin: 0;
 	}
 
 	h1, h2, label {
 		@extend %unselectable;
 		align-self: center;
-		margin: 0;
 	}
 }
 
@@ -79,20 +78,16 @@ section {
 	padding: 0;
 	overflow: hidden;
 	ol {
-		display: block;
 		list-style: none;
 		height: 100%;
 		margin: 0;
 		padding: 0;
 		li {
 			@extend %unselectable;
-			display: inline-block;
-			height: 20rem;
-			width: 100%;
+			display: flex;
+			align-items: center;
+			height: 100%;
 			text-align: center;
-			padding-top: 75%;
-			margin-top: -10rem;
-			margin-bottom: 75%;
 			font-size: 20rem;
 			color: white;
 		}
