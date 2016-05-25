@@ -1,0 +1,181 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto)
+
+@import "mixins"
+@import "animations"
+
+html, body
+	background-color: black
+	padding: 0
+	margin: 0
+	height: 100vh
+	font-family: 'Roboto', sans-serif
+
+*
+	box-sizing: border-box
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0)
+	-webkit-tap-highlight-color: transparent
+
+h1, h2, h3, h4, h5, h6, li, p, label
+	color: white
+	margin: 0
+	padding: 0
+
+h1
+	font-size: 3rem
+
+h2
+	font-size: 2rem
+
+h3
+	font-size: 1.75rem
+
+%fullscreen
+	position: absolute
+	left: 0
+	top: 0
+	width: 100vw
+	height: 100vh
+
+%unselectable
+	-webkit-touch-callout: none
+	user-select: none
+	pointer-events: none
+
+section
+	@extend %fullscreen
+	display: flex
+	padding: 2rem
+	background-color: transparent
+	flex-flow: column wrap
+	justify-content: center
+	align-items: center
+	z-index: 2
+
+	p
+		@extend %unselectable
+		width: 100%
+		font-size: 2rem
+		text-align: center
+
+	h1, h2, label
+		@extend %unselectable
+		align-self: center
+
+#menu
+	h1
+		margin-bottom: 1rem
+
+#countdown
+	padding: 0
+	overflow: hidden
+
+	ol
+		list-style: none
+		margin: 0
+		padding: 0
+
+		li
+			@extend %unselectable
+			display: flex
+			align-items: center
+			height: 100vh
+			text-align: center
+			font-size: 75vh
+			color: white
+
+button
+	cursor: pointer
+	color: black
+	background-color: white
+	padding: 1rem 2rem
+	margin: 0.25rem 0
+	font-size: 1.75rem
+	border: none
+	border-radius: 1rem
+	user-select: none
+	transition: color 0.1s linear, transform 0.05s linear
+	align-self: center
+
+	&:active
+		color: inherit
+		transform: scale(0.9)
+
+input[type=range]
+	&, &::-webkit-slider-runnable-track, &::-webkit-slider-thumb
+		-webkit-appearance: none
+
+	width: 100%
+	background: transparent
+
+	+slider(thumb)
+		background: transparent
+		border-radius: 50%
+		border: 2px solid white
+		cursor: ew-resize
+		height: 1rem
+		width: 1rem
+		transition: transform 0.1s linear, border 0.1s linear
+
+
+	+slider(track)
+		width: 5rem
+		height: 1rem
+		cursor: pointer
+		background: rgba(0, 0, 0, 0.5)
+		border-radius: 1rem
+		box-shadow: 0 0 0 1px white
+		transition: background-color 0.1s linear
+
+
+	&:focus
+		outline: none
+
+	&:active
+		+slider(thumb)
+			transform: scale(0.8)
+			border: 0.5rem solid white
+
+input[type=checkbox]
+	display: none
+
+	& + label
+		display: inline-block
+		cursor: pointer
+		pointer-events: auto
+
+		&:before
+			content: ''
+			display: inline-block
+			width: 1rem
+			height: 1rem
+			margin-bottom: -0.25rem
+			margin-right: 0.5rem
+			border-radius: 50%
+			background-color: blue
+			box-shadow: 0 0 0 1rem white inset
+			transition: box-shadow 0.15s linear
+
+	&:checked + label:before
+		box-shadow: 0 0 0 0.25rem white inset
+
+#svg
+	@extend %fullscreen
+
+	z-index: 1
+	transition: opacity 0.2s linear
+
+	*
+		pointer-events: all
+
+	text
+		font-size: 2rem
+
+#targets
+	fill: white
+	stroke: black
+	stroke-width: 1
+
+#clicks
+	fill: red
+	stroke: yellow
+	stroke-width: 3

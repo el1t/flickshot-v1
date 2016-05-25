@@ -130,6 +130,7 @@ initializeViews = (game) ->
 					targets: game.targets
 					clicks: game.clicks
 					dimens: game.dimens
+					lives: game.mode.lives
 				computed:
 					styles: ->
 						cursor:
@@ -145,7 +146,7 @@ initializeViews = (game) ->
 								x: e.pageX
 								y: e.pageY
 							unless index?
-								game.gameOver()
+								game.gameOver() if --@lives == 0
 								return
 							setTimeout =>
 									@clicks.shift()
@@ -184,6 +185,7 @@ class Game
 			rMax: 0.3
 			growth: 1
 			targetCount: 3
+			lives: 3
 			showCursor: true
 			time: 5000
 	# Assign default properties and fill in unspecified properties with 0
@@ -194,6 +196,7 @@ class Game
 			growth: 0.95
 			targetCount: 3
 			time: 3000
+			lives: 1
 			delay: false
 			showCursor: false
 		properties = []
@@ -245,7 +248,9 @@ class Game
 		@scalar = Math.min @dimens.width, @dimens.height
 		@rMin = @mode.rMin * @scalar
 		@rMax = @mode.rMax * @scalar
-		if @views? then @views.game.time = @views.game.totalTime = @mode.time
+		if @views?
+			@views.game.time = @views.game.totalTime = @mode.time
+			@views.game.lives = @mode.lives
 		@stats.targets = 0
 		@stats.bonus = 0
 		@stats.time = 0

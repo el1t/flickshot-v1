@@ -69,10 +69,13 @@
 
 <svg id="svg" :style="styles" xmlns="http://www.w3.org/2000/svg" @click="click">
 	<rect x="0" y="0" :width="length" height="10" fill="white"></rect>
-	<circle v-for="target in targets" transition="target" @click.stop="click($event, $index)"
-	        :cx="target.x" :cy="target.y" :r="target.r"
-	        fill="white" stroke="black" stroke-width="1"></circle>
-	<circle v-for="click in clicks" transition="click"
-	        :cx="click.x" :cy="click.y" r="5"
-	        fill="red" stroke="yellow" stroke-width="3"></circle>
+	<text x="0" y="100%" fill="white" stroke="white">{{ lives }}</text>
+	<g id="targets">
+		<circle v-for="target in targets" transition="target" @click.stop="click($event, $index)"
+		        :cx="target.x" :cy="target.y" :r="target.r"></circle>
+	</g>
+	<g id="clicks">
+		<circle v-for="click in clicks" transition="click"
+		        :cx="click.x" :cy="click.y" r="5"></circle>
+	</g>
 </svg>
