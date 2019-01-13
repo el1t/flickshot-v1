@@ -18,50 +18,55 @@ $swift-out: cubic-bezier(0.55, 0, 0.1, 1)
 		opacity: 0
 
 	&.fade-leave
-		@extend .fade-enter
+		@extend .fade-transition.fade-enter
 		pointer-events: none
 
 .slide-transition
-	transition: top 0.3s
+	// To notify Vue of transition end
+	transition: background-position 0.5s linear
 
-	&.slide-enter > *
-		transform: translateX(100vw)
+	&.slide-enter
+		background-position: center
+		& > *
+			opacity: 0
+			transform: translateX(100vw)
 
 	&.slide-leave
+		background-position: center
 		pointer-events: none
 
 		& > *
+			opacity: 0
 			transform: translateX(-100vw)
 
 	& > *
 		@extend %stagger
-		transition: transform 0.3s $swift-out
+		transition: transform 0.3s $swift-out, opacity 0.3s $swift-out
 
 .slide-pairs-transition
-	transition: top 0.3s
+	transition: background-position 0.5s linear
 
-	&.slide-pairs-enter > *
-		transform: translateX(100vw)
+	&.slide-pairs-enter
+		@extend .slide-transition.slide-enter
 
 	&.slide-pairs-leave
 		@extend .slide-transition.slide-leave
 
 	& > *
 		@extend %stagger-pairs
-		transition: transform 0.3s $swift-out
+		transition: transform 0.3s $swift-out, opacity 0.3s $swift-out
 
 #svg
 	.target-transition
 		opacity: 1
 		transition-property: transform, opacity
-		transition-duration: 0.15s
-		transition-timing-function: linear
+		transition-duration: 0.07s
+		transition-timing-function: ease-out
 
 		&.target-leave
 			@extend .fade-transition.fade-leave
-			transform: scale(1.1)
+			transform: scale(1.05)
 			transform-origin: center
-			pointer-events: none
 
 	.click-transition
 		opacity: 1
@@ -69,16 +74,16 @@ $swift-out: cubic-bezier(0.55, 0, 0.1, 1)
 		transition: opacity 0.2s linear
 
 		&.click-leave
-			@extend .target-transition.target-leave
+			@extend .fade-transition.fade-leave
 
-.countdown-transition.countdown-leave
-	animation: countdown 3s $swift-out
-
-$countdown-height: 100vh
+.countdown-transition
+	transform: translateY(100vh)
+	&.countdown-leave
+		animation: countdown 3s $swift-out .2s
 
 =animate($count)
 	0%
-		transform: translateY($countdown-height)
+		transform: translateY(100vh)
 
 	$step: 100 / $count
 	$progress: 50 / $count
@@ -89,7 +94,7 @@ $countdown-height: 100vh
 			transform: translateY($translate)
 
 		$progress: $progress + $step
-		$translate: $translate - $countdown-height
+		$translate: $translate - 100vh
 
 	100%
 		transform: translateY($translate)

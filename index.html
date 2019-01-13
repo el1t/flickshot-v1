@@ -9,10 +9,10 @@
 
 <section id="menu" v-show="show" transition="slide">
 	<h1>Flickshot</h1>
-	<button @click="select">Instructions</button>
-	<button @click="select">Change Mode</button>
-	<button @click="select">Settings</button>
-	<button @click="select">Start</button>
+	<b><button @click="select">Instructions</button></b>
+	<b><button @click="select">Change Mode</button></b>
+	<b><button @click="select">Settings</button></b>
+	<b><button @click="select">Start</button></b>
 </section>
 
 <section id="instructions" v-show="show" @click="back" transition="slide">
@@ -22,11 +22,11 @@
 </section>
 
 <section id="modes" v-show="show" @click="back" transition="slide">
-	<button @click="select">Original</button>
-	<button @click="select">Flick</button>
-	<button @click="select">Accuracy</button>
-	<button @click="select">Practice</button>
-	<button @click.stop="select">Custom</button>
+	<b><button @click="select">Original</button></b>
+	<b><button @click="select">Flick</button></b>
+	<b><button @click="select">Accuracy</button></b>
+	<b><button @click="select">Practice</button></b>
+	<b><button @click.stop="select">Custom</button></b>
 </section>
 
 <section id="custom" v-show="show" transition="slide-pairs">
@@ -46,7 +46,8 @@
 </section>
 
 <section id="settings" v-show="show" @click="back" transition="slide">
-	<button @click.stop="toggleFullscreen">{{ fullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen' }}</button>
+	<b><button @click.stop="toggle('fullscreen')">{{ fullscreen ? 'Exit' : 'Enter' }} Fullscreen</button></b>
+	<b><button @click.stop="toggle('animations')">{{ animations ? 'Enable' : 'Disable }} Animations</button></b>
 </section>
 
 <section id="end" v-show="show" transition="slide">
@@ -69,7 +70,7 @@
 
 <svg id="svg" :style="styles" xmlns="http://www.w3.org/2000/svg" @click="click">
 	<rect x="0" y="0" :width="length" height="10" fill="white"></rect>
-	<text x="0" y="100%" fill="white" stroke="white">{{ lives }}</text>
+	<!--<text x="0" y="100%" fill="white" stroke="white">{{ score }}</text>-->
 	<g id="targets">
 		<circle v-for="target in targets" transition="target" @click.stop="click($event, $index)"
 		        :cx="target.x" :cy="target.y" :r="target.r"></circle>

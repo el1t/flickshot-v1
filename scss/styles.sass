@@ -38,6 +38,9 @@ h3
 
 %unselectable
 	-webkit-touch-callout: none
+	-webkit-user-select: none
+	-moz-user-select: none
+	-ms-user-select: none
 	user-select: none
 	pointer-events: none
 
@@ -68,6 +71,7 @@ section
 #countdown
 	padding: 0
 	overflow: hidden
+	justify-content: flex-start
 
 	ol
 		list-style: none
@@ -83,6 +87,20 @@ section
 			font-size: 75vh
 			color: white
 
+#settings
+	button
+		border: 0.25rem solid white
+		color: white
+		background-color: transparent
+		transition-property: color, background-color, transform
+		transition-duration: 0.1s, 0.1s, 0.05s
+		transition-timing-function: linear
+		&:hover
+			background-color: rgba(#FFF, 0.5)
+		&:active
+			color: black
+			background-color: white
+
 button
 	cursor: pointer
 	color: black
@@ -93,7 +111,7 @@ button
 	border: none
 	border-radius: 1rem
 	user-select: none
-	transition: color 0.1s linear, transform 0.05s linear
+	transition: color 0.1s linear, transform 0.1s linear
 	align-self: center
 
 	&:active
@@ -169,6 +187,8 @@ input[type=checkbox]
 
 	text
 		font-size: 2rem
+		pointer-events: none
+		cursor: none
 
 #targets
 	fill: white
@@ -179,3 +199,4 @@ input[type=checkbox]
 	fill: red
 	stroke: yellow
 	stroke-width: 3
+	pointer-events: none

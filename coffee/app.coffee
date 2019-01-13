@@ -16,6 +16,7 @@ initializeViews = (game) ->
 				el: '#menu'
 				data:
 					show: true
+					transitions: on
 				methods:
 					select: (event) ->
 						@show = false
@@ -71,25 +72,30 @@ initializeViews = (game) ->
 				el: '#settings'
 				data:
 					show: false
-					fullscreen: false
+					fullscreen: off
+					animations: on
 				methods:
 					back: ->
 						@show = false
 						game.views.menu.show = true
-					toggleFullscreen: ->
-						if document.fullscreenElement? or document.webkitFullscreenElement? or
-						document.mozFullScreenElement? or document.msFullscreenElement?
-							document.exitFullscreen?()
-							document.mozCancelFullScreen?()
-							document.webkitExitFullscreen?()
-							document.msExitFullscreen?()
-						else
-							el = document.documentElement
-							el.requestFullscreen?()
-							el.msRequestFullscreen?()
-							el.mozRequestFullScreen?()
-							el.webkitRequestFullscreen?()
-						@fullscreen = not @fullscreen
+					toggle: (option) ->
+						switch option
+							when 'fullscreen'
+								if document.fullscreenElement? or document.webkitFullscreenElement? or
+								document.mozFullScreenElement? or document.msFullscreenElement?
+									document.exitFullscreen?()
+									document.mozCancelFullScreen?()
+									document.webkitExitFullscreen?()
+									document.msExitFullscreen?()
+								else
+									el = document.documentElement
+									el.requestFullscreen?()
+									el.msRequestFullscreen?()
+									el.mozRequestFullScreen?()
+									el.webkitRequestFullscreen?()
+								@fullscreen = not @fullscreen
+							when 'animations'
+								animations = not animations
 		gameover:
 			new Vue
 				el: '#end'
@@ -130,6 +136,7 @@ initializeViews = (game) ->
 					targets: game.targets
 					clicks: game.clicks
 					dimens: game.dimens
+					score: game.stats.targets
 					lives: game.mode.lives
 				computed:
 					styles: ->
@@ -172,7 +179,7 @@ class Game
 			rMax: 0.15
 			growth: 1
 			targetCount: 1
-			delay: true
+			delay: yes
 			time: 1500
 		accuracy:
 			rMin: 0.1
@@ -186,7 +193,7 @@ class Game
 			growth: 1
 			targetCount: 3
 			lives: 3
-			showCursor: true
+			showCursor: yes
 			time: 5000
 	# Assign default properties and fill in unspecified properties with 0
 	@setupModes = ->
@@ -197,8 +204,8 @@ class Game
 			targetCount: 3
 			time: 3000
 			lives: 1
-			delay: false
-			showCursor: false
+			delay: no
+			showCursor: no
 		properties = []
 		for own _, mode of @modes
 			# Collect unknown properties
@@ -260,7 +267,7 @@ class Game
 		@paused = true
 
 	gameOver: ->
-		@views.game.mouse = true
+		@views.game.mouse = on
 		@views.gameover.show = true
 		@paused = true
 
@@ -299,10 +306,12 @@ class Target
 	constructor: (@x, @y, @r) ->
 
 	clickBonus: (x, y) ->
-		return 1 - Math.hypot((@x - x), (@y - y)) / @r
+		return 1 - Math.hypot(@x - x, @y - y) / @r
 
 window.onload = ->
 	Game.setupModes()
-	app = new Game {width: window.innerWidth, height: window.innerHeight}
+	app = new Game
+		width: window.innerWidth
+		height: window.innerHeight
 	# Setup Vue instances for menus
 	initializeViews app
